@@ -2,6 +2,9 @@
 
 > AI-powered bug investigation, focused patching, and real test execution for Python codebases.
 
+🌐 **Live Demo Website:** [https://shaggy-news-enjoy.loca.lt](https://shaggy-news-enjoy.loca.lt)  
+*(Password if prompted: `122.161.75.251`)*
+
 ---
 
 ## ⚡ Quick Start (Windows)
