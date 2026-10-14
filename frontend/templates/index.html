@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeMedic — Software Delivery Agent</title>
+  <meta name="description" content="AI-powered bug investigation and automated patching for Python codebases." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/main.css" />
+</head>
+<body>
+
+<!-- ─── Sidebar ─────────────────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">⚕</span>
+    <div>
+      <div class="logo-title">CodeMedic</div>
+      <div class="logo-sub">Software Delivery Agent</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-section="upload" id="nav-upload">
+      <span class="nav-icon">📁</span> Project Setup
+    </a>
+    <a href="#" class="nav-item" data-section="overview" id="nav-overview">
+      <span class="nav-icon">🗂</span> Codebase Overview
+    </a>
+    <a href="#" class="nav-item" data-section="findings" id="nav-findings">
+      <span class="nav-icon">🔍</span> Bug Findings
+      <span class="nav-badge" id="findings-badge" style="display:none">0</span>
+    </a>
+    <a href="#" class="nav-item" data-section="patch" id="nav-patch">
+      <span class="nav-icon">🩹</span> Patch Review
+    </a>
+    <a href="#" class="nav-item" data-section="tests" id="nav-tests">
+      <span class="nav-icon">🧪</span> Test Console
+    </a>
+    <a href="#" class="nav-item" data-section="report" id="nav-report">
+      <span class="nav-icon">📋</span> Final Report
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="status-pill" id="session-status">No project loaded</div>
+    <div class="disclaimer-text">MVP · Trusted demo use only</div>
+  </div>
+</aside>
+
+<!-- ─── Main content ─────────────────────────────────────────────────────────── -->
+<main class="main-content">
+
+  <!-- ── Toast notifications ── -->
+  <div id="toast-container"></div>
+
+  <!-- ══════════════════════════════════════════════
+       Section 1 · Upload / Project Setup
+  ══════════════════════════════════════════════ -->
+  <section class="section active" id="section-upload">
+    <div class="section-header">
+      <h1>Project Setup</h1>
+      <p class="section-sub">Upload a Python ZIP archive or load the built-in demo to get started.</p>
+    </div>
+
+    <div class="cards-row">
+      <!-- Upload card -->
+      <div class="card upload-card" id="upload-dropzone">
+        <div class="upload-icon">📦</div>
+        <h3>Upload ZIP Archive</h3>
+        <p>Drag & drop a ZIP file containing your Python project, or click to browse.</p>
+        <p class="upload-hint">Max 50 MB · Python files only · No venvs</p>
+        <input type="file" id="file-input" accept=".zip" style="display:none" />
+        <button class="btn btn-primary" id="browse-btn">Browse File</button>
+        <div class="upload-filename" id="upload-filename"></div>
+        <button class="btn btn-primary" id="upload-btn" style="display:none;margin-top:12px">
+          <span class="btn-spinner" id="upload-spinner" style="display:none"></span>
+          Upload & Scan
+        </button>
+      </div>
+
+      <!-- Demo card -->
+      <div class="card demo-card">
+        <div class="upload-icon">🧪</div>
+        <h3>Built-in Demo Project</h3>
+        <p>Load the <strong>Price-Discount Calculator</strong> — a small Python app with two reproducible bugs.</p>
+        <ul class="demo-bugs">
+          <li>🔴 ZeroDivisionError on 100% discount</li>
+          <li>🟡 Mutable default argument in <code>batch_discount()</code></li>
+        </ul>
+        <button class="btn btn-accent" id="demo-btn">
+          <span class="btn-spinner" id="demo-spinner" style="display:none"></span>
+          Load Demo Project
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       Section 2 · Codebase Overview
+  ══════════════════════════════════════════════ -->
+  <section class="section" id="section-overview">
+    <div class="section-header">
+      <h1>Codebase Overview</h1>
+      <p class="section-sub" id="overview-project-name">—</p>
+    </div>
+
+    <div class="cards-row" id="overview-stats"></div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="card-title">Source Files</div>
+      <div class="file-list" id="source-file-list"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">Test Files</div>
+      <div class="file-list" id="test-file-list"></div>
+    </div>
+
+    <div class="action-bar" style="margin-top:24px">
+      <button class="btn btn-primary" id="investigate-btn">
+        <span class="btn-spinner" id="investigate-spinner" style="display:none"></span>
+        🔍 Investigate Codebase
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       Section 3 · Bug Findings
+  ══════════════════════════════════════════════ -->
+  <section class="section" id="section-findings">
+    <div class="section-header">
+      <h1>Bug Findings</h1>
+      <p class="section-sub" id="findings-summary">—</p>
+    </div>
+
+    <div id="findings-list"></div>
+
+    <div class="action-bar" style="margin-top:24px">
+      <button class="btn btn-secondary" id="run-tests-btn-findings">
+        🧪 Run Tests Now
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       Section 4 · Patch Review
+  ══════════════════════════════════════════════ -->
+  <section class="section" id="section-patch">
+    <div class="section-header">
+      <h1>Patch Review</h1>
+      <p class="section-sub">Review proposed changes before applying them to source files.</p>
+    </div>
+
+    <div class="card" id="patch-selector-card">
+      <div class="card-title">Select a Finding to Patch</div>
+      <div id="patch-finding-list"></div>
+    </div>
+
+    <div id="patch-detail" style="display:none">
+      <div class="card" style="margin-top:16px">
+        <div class="card-title" id="patch-finding-title"></div>
+        <div class="patch-meta" id="patch-meta"></div>
+
+        <div class="diff-container">
+          <div class="diff-pane">
+            <div class="diff-label diff-label-before">BEFORE</div>
+            <pre class="code-block diff-before" id="patch-before"></pre>
+          </div>
+          <div class="diff-pane">
+            <div class="diff-label diff-label-after">AFTER</div>
+            <pre class="code-block diff-after" id="patch-after"></pre>
+          </div>
+        </div>
+
+        <div id="patch-not-auto" class="alert alert-warn" style="display:none">
+          ⚠ No automatic patch available for this pattern. Manual fix suggested:
+          <pre class="code-block" id="patch-suggested-fix" style="margin-top:8px"></pre>
+        </div>
+
+        <div class="action-bar" style="margin-top:20px" id="patch-actions">
+          <button class="btn btn-success" id="apply-patch-btn">
+            <span class="btn-spinner" id="apply-spinner" style="display:none"></span>
+            ✅ Apply Patch
+          </button>
+          <button class="btn btn-danger" id="reject-patch-btn">❌ Reject</button>
+        </div>
+
+        <div class="alert alert-success" id="patch-success-msg" style="display:none"></div>
+        <div class="alert alert-error" id="patch-error-msg" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       Section 5 · Test Console
+  ══════════════════════════════════════════════ -->
+  <section class="section" id="section-tests">
+    <div class="section-header">
+      <h1>Test Console</h1>
+      <p class="section-sub">Execute tests and view real command output.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Run Tests</div>
+      <div class="test-controls">
+        <button class="btn btn-primary" id="run-full-tests-btn">
+          <span class="btn-spinner" id="run-full-spinner" style="display:none"></span>
+          ▶ Run Full Test Suite
+        </button>
+        <span class="test-hint">Tests run in: <code id="test-cwd-display">—</code></span>
+      </div>
+    </div>
+
+    <div id="test-runs-container"></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       Section 6 · Final Report
+  ══════════════════════════════════════════════ -->
+  <section class="section" id="section-report">
+    <div class="section-header">
+      <h1>Investigation Report</h1>
+      <p class="section-sub" id="report-timestamp">—</p>
+    </div>
+
+    <div class="action-bar" style="margin-bottom:20px">
+      <button class="btn btn-primary" id="generate-report-btn">
+        <span class="btn-spinner" id="report-spinner" style="display:none"></span>
+        📋 Generate Report
+      </button>
+    </div>
+
+    <div id="report-container" style="display:none">
+      <div class="cards-row" id="report-stats"></div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">Fixed Issues</div>
+        <div id="report-fixed"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Unresolved Issues</div>
+        <div id="report-unresolved"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Test Execution Summary</div>
+        <div id="report-test-runs"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Remaining Uncertainties</div>
+        <ul id="report-uncertainties" class="uncertainty-list"></ul>
+      </div>
+
+      <div class="card disclaimer-card" style="margin-top:16px">
+        <div class="card-title">⚠ Disclaimer</div>
+        <p id="report-disclaimer"></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
